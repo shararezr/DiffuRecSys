@@ -249,41 +249,41 @@ class PositionwiseFeedForward(nn.Module):
         return self.w_2(self.dropout(activation))
 
 
-class SelfAttention(nn.Module):
-    def __init__(self, heads, hidden_size, dropout, emb_Tdim):
+class AttentionFusion(nn.Module):
+    def __init__(self, hidden_size, dropout):
         super().__init__()
-        assert hidden_size % heads == 0
-        self.size_head = hidden_size // heads
-        self.num_heads = heads
-        self.emb_Tdim = emb_Tdim
-        self.linear_layers = nn.ModuleList([nn.Linear(hidden_size, hidden_size) for _ in range(3)])
+        
+        self.hidden_size = hidden_size
+        self.linear = nn.Linear(hidden_size, hidden_size)
         self.w_layer = nn.Linear(hidden_size, hidden_size)
         self.dropout = nn.Dropout(p=dropout)
-        self.proj_out = StylizationBlock(hidden_size, emb_Tdim, dropout)
         self.init_weights()
 
     def init_weights(self):
         nn.init.xavier_normal_(self.w_layer.weight)
-
-    def forward(self, q, k, v,emb_t, mask=None):
-        batch_size = q.shape[0]
-        q, k, v = [l(x).view(batch_size, -1, self.num_heads, self.size_head).transpose(1, 2) for l, x in zip(self.linear_layers, (q, k, v))]
-        #corr = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(q.size(-1))
-        query = F.softmax(q, dim=-1)
-        key = F.softmax(k, dim=1)
-        attention = torch.matmul(key.transpose(-2, -1),v)
-        hidden = torch.matmul(query, attention)
-
-        if mask is not None:
-          mask = mask.unsqueeze(1).repeat([1, hidden.shape[1], 1]).unsqueeze(-1).repeat([1,1,1,hidden.shape[-1]])
-          hidden = hidden.masked_fill(mask == 0, -1e9)
-
-        if self.dropout is not None:
-            hidden = self.dropout(hidden)
-
-        hidden = self.w_layer(hidden.transpose(1, 2).contiguous().view(batch_size, -1, self.num_heads * self.size_head))
-        return self.proj_out(hidden, emb_t)
-
+        
+    def forward(self, x, x_t):
+        """
+        Args:
+            sequence (torch.Tensor): Input sequence of shape (seq_len, input_size).
+            new_item (torch.Tensor): New item to be fused with the sequence of shape (input_size,).
+            
+        Returns:
+            torch.Tensor: Fused representation of the sequence and the new item.
+        """
+        # Compute attention scores
+        sequence_transformed = self.linear(x).view(batch_size, -1, self.hidden_size).transpose(1, 2)  # Apply linear transformation
+        new_item_transformed = self.linear(x_t).view(batch_size, -1, self.hidden_size).transpose(1, 2)  # Apply linear transformation
+        attention_scores = torch.matmul(sequence_transformed, new_item_transformed)  # Dot product
+        
+        # Normalize attention scores using softmax
+        attention_weights = F.softmax(attention_scores, dim=0)
+        
+        # Weighted sum of the sequence elements
+        fused_representation = torch.sum(x * attention_weights.unsqueeze(-1), dim=0)
+        hidden = self.w_layer(hidden.transpose(1, 2).contiguous().view(batch_size, -1, self.hidden_size))
+        
+        return hidden
 
 class MultiHeadedAttention(nn.Module):
     def __init__(self, heads, hidden_size, dropout):

@@ -158,6 +158,15 @@ class SiLU(nn.Module):
         return x * th.sigmoid(x)
 
 
+def zero_module(module):
+    """
+    Zero out the parameters of a module and return it.
+    """
+    for p in module.parameters():
+        p.detach().zero_()
+    return module
+
+
 class LayerNorm(nn.Module):
     def __init__(self, hidden_size, eps=1e-12):
         """Construct a layernorm module in the TF style (epsilon inside the square root).
@@ -190,6 +199,36 @@ class SublayerConnection(nn.Module):
         return x + self.dropout(sublayer(self.norm(x)))
 
 
+class StylizationBlock(nn.Module):
+
+    def __init__(self, latent_dim, time_embed_dim, dropout):
+        super().__init__()
+        self.emb_layers = nn.Sequential(
+            nn.SiLU(),
+            nn.Linear(time_embed_dim, 2 * latent_dim),
+        )
+        self.norm = nn.LayerNorm(latent_dim)
+        self.out_layers = nn.Sequential(
+            nn.SiLU(),
+            nn.Dropout(p=dropout),
+        )
+
+
+    def forward(self, h, emb):
+        """
+        h: B, T, D
+        emb: B, D
+        """
+        # B, 1, 2D
+        emb_out = self.emb_layers(emb).unsqueeze(1)
+        # scale: B, 1, D / shift: B, 1, D
+        scale, shift = torch.chunk(emb_out, 2, dim=2)
+        h = self.norm(h) * (1 + scale) + shift
+        h = self.out_layers(h)
+        return h
+
+
+
 class PositionwiseFeedForward(nn.Module):
     "Implements FFN equation."
 
@@ -208,6 +247,42 @@ class PositionwiseFeedForward(nn.Module):
         hidden = self.w_1(hidden)
         activation = 0.5 * hidden * (1 + torch.tanh(math.sqrt(2 / math.pi) * (hidden + 0.044715 * torch.pow(hidden, 3))))
         return self.w_2(self.dropout(activation))
+
+
+class SelfAttention(nn.Module):
+    def __init__(self, heads, hidden_size, dropout, emb_Tdim):
+        super().__init__()
+        assert hidden_size % heads == 0
+        self.size_head = hidden_size // heads
+        self.num_heads = heads
+        self.emb_Tdim = emb_Tdim
+        self.linear_layers = nn.ModuleList([nn.Linear(hidden_size, hidden_size) for _ in range(3)])
+        self.w_layer = nn.Linear(hidden_size, hidden_size)
+        self.dropout = nn.Dropout(p=dropout)
+        self.proj_out = StylizationBlock(hidden_size, emb_Tdim, dropout)
+        self.init_weights()
+
+    def init_weights(self):
+        nn.init.xavier_normal_(self.w_layer.weight)
+
+    def forward(self, q, k, v,emb_t, mask=None):
+        batch_size = q.shape[0]
+        q, k, v = [l(x).view(batch_size, -1, self.num_heads, self.size_head).transpose(1, 2) for l, x in zip(self.linear_layers, (q, k, v))]
+        #corr = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(q.size(-1))
+        query = F.softmax(q, dim=-1)
+        key = F.softmax(k, dim=1)
+        attention = torch.matmul(key.transpose(-2, -1),v)
+        hidden = torch.matmul(query, attention)
+
+        if mask is not None:
+          mask = mask.unsqueeze(1).repeat([1, hidden.shape[1], 1]).unsqueeze(-1).repeat([1,1,1,hidden.shape[-1]])
+          hidden = hidden.masked_fill(mask == 0, -1e9)
+
+        if self.dropout is not None:
+            hidden = self.dropout(hidden)
+
+        hidden = self.w_layer(hidden.transpose(1, 2).contiguous().view(batch_size, -1, self.num_heads * self.size_head))
+        return self.proj_out(hidden, emb_t)
 
 
 class MultiHeadedAttention(nn.Module):
@@ -243,17 +318,18 @@ class MultiHeadedAttention(nn.Module):
 class TransformerBlock(nn.Module):
     def __init__(self, hidden_size, attn_heads, dropout):
         super(TransformerBlock, self).__init__()
-        self.attention = MultiHeadedAttention(heads=attn_heads, hidden_size=hidden_size, dropout=dropout)
+        self.SA = SelfAttention(heads=attn_heads, hidden_size=hidden_size, dropout=dropout, emb_Tdim = hidden_size)
+        self.MU = MultiHeadedAttention(heads=attn_heads, hidden_size=hidden_size, dropout=dropout)
         self.feed_forward = PositionwiseFeedForward(hidden_size=hidden_size, dropout=dropout)
         self.input_sublayer = SublayerConnection(hidden_size=hidden_size, dropout=dropout)
         self.output_sublayer = SublayerConnection(hidden_size=hidden_size, dropout=dropout)
         self.dropout = nn.Dropout(p=dropout)
 
-    def forward(self, hidden, mask):
-        hidden = self.input_sublayer(hidden, lambda _hidden: self.attention.forward(_hidden, _hidden, _hidden, mask=mask))
-        hidden = self.output_sublayer(hidden, self.feed_forward)
-        return self.dropout(hidden)
-
+    def forward(self, x, x_t, emb_t, mask):
+        hidden = self.input_sublayer(x, lambda _hidden: self.SA.forward(_hidden, _hidden, _hidden, emb_t, mask=mask))
+        hidden = self.input_sublayer(hidden + x_t , lambda _hidden: self.MU.forward(_hidden, _hidden, _hidden, mask=mask))
+        hidden = self.output_sublayer(hidden, lambda _hidden: self.feed_forward(_hidden))
+        return hidden
 
 class Transformer_rep(nn.Module):
     def __init__(self, args):
@@ -265,9 +341,9 @@ class Transformer_rep(nn.Module):
         self.transformer_blocks = nn.ModuleList(
             [TransformerBlock(self.hidden_size, self.heads, self.dropout) for _ in range(self.n_blocks)])
 
-    def forward(self, hidden, mask):
+    def forward(self, x, x_t, emb_t, mask):
         for transformer in self.transformer_blocks:
-            hidden = transformer.forward(hidden, mask)
+            hidden = transformer.forward(x, x_t, emb_t, mask)
         return hidden
 
 
@@ -317,7 +393,7 @@ class Diffu_xstart(nn.Module):
         # lambda_uncertainty = self.lambda_uncertainty  ### fixed
 
         ####  Attention
-        rep_diffu = self.att(rep_item + lambda_uncertainty * x_t.unsqueeze(1), mask_seq)
+        rep_diffu = self.att(rep_item, lambda_uncertainty * x_t.unsqueeze(1), emb_t, mask_seq)
         rep_diffu = self.norm_diffu_rep(self.dropout(rep_diffu))
         out = rep_diffu[:, -1, :]
 

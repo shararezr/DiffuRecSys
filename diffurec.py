@@ -249,42 +249,45 @@ class PositionwiseFeedForward(nn.Module):
         return self.w_2(self.dropout(activation))
 
 
-class AttentionFusion(nn.Module):
-    def __init__(self, hidden_size, dropout):
+class CrossAttention(nn.Module):
+    def __init__(self, heads, hidden_size, dropout, emb_Tdim):
         super().__init__()
-        
-        self.hidden_size = hidden_size
-        self.linear = nn.Linear(hidden_size, hidden_size)
+        assert hidden_size % heads == 0
+        self.size_head = hidden_size // heads
+        self.num_heads = heads
+        self.emb_Tdim = emb_Tdim
+        self.linear_layers = nn.ModuleList([nn.Linear(hidden_size, hidden_size) for _ in range(3)])
         self.w_layer = nn.Linear(hidden_size, hidden_size)
         self.dropout = nn.Dropout(p=dropout)
+        self.proj_out = StylizationBlock(hidden_size, emb_Tdim, dropout)
         self.init_weights()
 
     def init_weights(self):
         nn.init.xavier_normal_(self.w_layer.weight)
-        
-    def forward(self, x, x_t):
-        """
-        Args:
-            sequence (torch.Tensor): Input sequence of shape (seq_len, input_size).
-            new_item (torch.Tensor): New item to be fused with the sequence of shape (input_size,).
-            
-        Returns:
-            torch.Tensor: Fused representation of the sequence and the new item.
-        """
-        # Compute attention scores
+
+    def forward(self,x,x_t,emb_t, mask=None):
         batch_size = x.shape[0]
-        sequence_transformed = self.linear(x)  # Apply linear transformation
-        new_item_transformed = self.linear(x_t)  # Apply linear transformation
-        attention_scores = torch.matmul(sequence_transformed, new_item_transformed)  # Dot product
-        
-        # Normalize attention scores using softmax
-        attention_weights = F.softmax(attention_scores, dim=0)
-        
-        # Weighted sum of the sequence elements
-        fused_representation = torch.sum(x * attention_weights.unsqueeze(-1), dim=0)
-        hidden = self.w_layer(hidden.transpose(1, 2).contiguous().view(batch_size, -1, self.hidden_size))
-        
+        q, k, v = [l(x).view(batch_size, -1, self.num_heads, self.size_head).transpose(1, 2) for l, x in zip(self.linear_layers, (x, x_t, x_t))]
+        #corr = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(q.size(-1))
+
+        query = F.softmax(q, dim=-1)
+        key = F.softmax(k, dim=1)
+        attention = torch.matmul(key.transpose(-2, -1), v)
+        hidden = torch.matmul(query, attention)
+
+        if mask is not None:
+          mask = mask.unsqueeze(1).repeat([1, hidden.shape[1], 1]).unsqueeze(-1).repeat([1,1,1,hidden.shape[-1]])
+          hidden = hidden.masked_fill(mask == 0, -1e9)
+
+
+        if self.dropout is not None:
+            hidden = self.dropout(hidden)
+
+        hidden = self.w_layer(hidden.transpose(1, 2).contiguous().view(batch_size, -1, self.num_heads * self.size_head))
+        #hidden = self.proj_out(hidden,emb_t) + q
         return hidden
+
+
 
 class MultiHeadedAttention(nn.Module):
     def __init__(self, heads, hidden_size, dropout):
@@ -319,7 +322,7 @@ class MultiHeadedAttention(nn.Module):
 class TransformerBlock(nn.Module):
     def __init__(self, hidden_size, attn_heads, dropout):
         super(TransformerBlock, self).__init__()
-        self.SA = AttentionFusion(hidden_size=hidden_size, dropout=dropout)
+        self.CA = CrossAttention(heads=attn_heads, hidden_size=hidden_size, dropout=dropout, emb_Tdim = hidden_size)
         self.MU = MultiHeadedAttention(heads=attn_heads, hidden_size=hidden_size, dropout=dropout)
         self.feed_forward = PositionwiseFeedForward(hidden_size=hidden_size, dropout=dropout)
         self.input_sublayer = SublayerConnection(hidden_size=hidden_size, dropout=dropout)
@@ -327,7 +330,7 @@ class TransformerBlock(nn.Module):
         self.dropout = nn.Dropout(p=dropout)
 
     def forward(self, x, x_t, emb_t, mask):
-        hidden = self.input_sublayer(x, lambda _hidden: self.SA.forward(x,x_t))
+        hidden = self.input_sublayer(x, lambda _hidden: self.CA.forward(_hidden, x_t, emb_t, mask=mask))
         hidden = self.input_sublayer(hidden , lambda _hidden: self.MU.forward(_hidden, _hidden, _hidden, mask=mask))
         hidden = self.output_sublayer(hidden, lambda _hidden: self.feed_forward(_hidden))
         return hidden

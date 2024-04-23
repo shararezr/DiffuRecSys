@@ -326,7 +326,7 @@ class TransformerBlock(nn.Module):
         self.dropout = nn.Dropout(p=dropout)
 
     def forward(self, x, x_t, emb_t, mask):
-        hidden = self.input_sublayer(x, lambda _hidden: self.SA.forward(x,x_t, mask=mask))
+        hidden = self.input_sublayer(x, lambda _hidden: self.SA.forward(x,x_t))
         hidden = self.input_sublayer(hidden , lambda _hidden: self.MU.forward(_hidden, _hidden, _hidden, mask=mask))
         hidden = self.output_sublayer(hidden, lambda _hidden: self.feed_forward(_hidden))
         return hidden

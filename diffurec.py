@@ -7,6 +7,15 @@ import torch
 import torch.nn.functional as F
 
 
+import torch.nn as nn
+import torch as th
+#from step_sample import create_named_schedule_sampler
+import numpy as np
+import math
+import torch
+import torch.nn.functional as F
+
+
 def _extract_into_tensor(arr, timesteps, broadcast_shape):
     """
     Extract values from a 1-D numpy array for a batch of indices.
@@ -267,7 +276,7 @@ class CrossAttention(nn.Module):
 
     def forward(self,x,x_t,emb_t, mask=None):
         batch_size = x.shape[0]
-        q, k, v = [l(x).view(batch_size, -1, self.num_heads, self.size_head).transpose(1, 2) for l, x in zip(self.linear_layers, (x, x_t, x_t))]
+        q, k, v = [l(x).view(batch_size, -1, self.num_heads, self.size_head).transpose(1, 2) for l, x in zip(self.linear_layers, (x_t, x, x))]
         #corr = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(q.size(-1))
 
         query = F.softmax(q, dim=-1)
@@ -322,7 +331,7 @@ class MultiHeadedAttention(nn.Module):
 class TransformerBlock(nn.Module):
     def __init__(self, hidden_size, attn_heads, dropout):
         super(TransformerBlock, self).__init__()
-        self.CA = CrossAttention(heads=attn_heads, hidden_size=hidden_size, dropout=dropout, emb_Tdim = hidden_size)
+        self.SA = CrossAttention(heads=attn_heads, hidden_size=hidden_size, dropout=dropout, emb_Tdim = hidden_size)
         self.MU = MultiHeadedAttention(heads=attn_heads, hidden_size=hidden_size, dropout=dropout)
         self.feed_forward = PositionwiseFeedForward(hidden_size=hidden_size, dropout=dropout)
         self.input_sublayer = SublayerConnection(hidden_size=hidden_size, dropout=dropout)
@@ -330,8 +339,8 @@ class TransformerBlock(nn.Module):
         self.dropout = nn.Dropout(p=dropout)
 
     def forward(self, x, x_t, emb_t, mask):
-        hidden = self.input_sublayer(x, lambda _hidden: self.CA.forward(_hidden, x_t, emb_t, mask=mask))
-        hidden = self.input_sublayer(hidden , lambda _hidden: self.MU.forward(_hidden, _hidden, _hidden, mask=mask))
+        hidden = self.input_sublayer(x, lambda _hidden: self.SA.forward(_hidden,x_t, emb_t, mask=mask))
+        hidden = self.input_sublayer(hidden, lambda _hidden: self.MU.forward(_hidden, _hidden, _hidden, mask=mask))
         hidden = self.output_sublayer(hidden, lambda _hidden: self.feed_forward(_hidden))
         return hidden
 

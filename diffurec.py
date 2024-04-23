@@ -273,8 +273,8 @@ class AttentionFusion(nn.Module):
         """
         # Compute attention scores
         batch_size = x.shape[0]
-        sequence_transformed = self.linear(x).view(batch_size, -1, self.hidden_size).transpose(1, 2)  # Apply linear transformation
-        new_item_transformed = self.linear(x_t).view(batch_size, -1, self.hidden_size).transpose(1, 2)  # Apply linear transformation
+        sequence_transformed = self.linear(x)  # Apply linear transformation
+        new_item_transformed = self.linear(x_t)  # Apply linear transformation
         attention_scores = torch.matmul(sequence_transformed, new_item_transformed)  # Dot product
         
         # Normalize attention scores using softmax

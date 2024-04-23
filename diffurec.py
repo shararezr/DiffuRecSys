@@ -318,7 +318,7 @@ class MultiHeadedAttention(nn.Module):
 class TransformerBlock(nn.Module):
     def __init__(self, hidden_size, attn_heads, dropout):
         super(TransformerBlock, self).__init__()
-        self.SA = SelfAttention(heads=attn_heads, hidden_size=hidden_size, dropout=dropout, emb_Tdim = hidden_size)
+        self.SA = AttentionFusion(hidden_size=hidden_size, dropout=dropout)
         self.MU = MultiHeadedAttention(heads=attn_heads, hidden_size=hidden_size, dropout=dropout)
         self.feed_forward = PositionwiseFeedForward(hidden_size=hidden_size, dropout=dropout)
         self.input_sublayer = SublayerConnection(hidden_size=hidden_size, dropout=dropout)
@@ -326,8 +326,8 @@ class TransformerBlock(nn.Module):
         self.dropout = nn.Dropout(p=dropout)
 
     def forward(self, x, x_t, emb_t, mask):
-        hidden = self.input_sublayer(x, lambda _hidden: self.SA.forward(_hidden, _hidden, _hidden, emb_t, mask=mask))
-        hidden = self.input_sublayer(hidden + x_t , lambda _hidden: self.MU.forward(_hidden, _hidden, _hidden, mask=mask))
+        hidden = self.input_sublayer(x, lambda _hidden: self.SA.forward(x,x_t, mask=mask))
+        hidden = self.input_sublayer(hidden , lambda _hidden: self.MU.forward(_hidden, _hidden, _hidden, mask=mask))
         hidden = self.output_sublayer(hidden, lambda _hidden: self.feed_forward(_hidden))
         return hidden
 

@@ -329,19 +329,24 @@ class MultiHeadedAttention(nn.Module):
 
 
 class TransformerBlock(nn.Module):
-    def __init__(self, hidden_size, attn_heads, dropout):
+    def __init__(self, hidden_size, attn_heads, dropout, epoch):
         super(TransformerBlock, self).__init__()
-        self.CA = CrossAttention(heads=attn_heads, hidden_size=hidden_size, dropout=dropout, emb_Tdim = hidden_size)
+        self.SA = CrossAttention(heads=attn_heads, hidden_size=hidden_size, dropout=dropout, emb_Tdim = hidden_size)
         self.MU = MultiHeadedAttention(heads=attn_heads, hidden_size=hidden_size, dropout=dropout)
+        self.epoch = epoch
         self.feed_forward = PositionwiseFeedForward(hidden_size=hidden_size, dropout=dropout)
         self.input_sublayer = SublayerConnection(hidden_size=hidden_size, dropout=dropout)
         self.output_sublayer = SublayerConnection(hidden_size=hidden_size, dropout=dropout)
         self.dropout = nn.Dropout(p=dropout)
 
     def forward(self, x, x_t, emb_t, mask):
-        hidden = self.input_sublayer(x, lambda _hidden: self.CA.forward(_hidden,x_t, emb_t, mask=mask))
-        hidden = self.input_sublayer(hidden, lambda _hidden: self.MU.forward(_hidden, _hidden, _hidden, mask=mask))
-        hidden = self.output_sublayer(hidden, lambda _hidden: self.feed_forward(_hidden))
+        if self.epoch < 35:
+          hidden = self.input_sublayer(x, lambda _hidden: self.SA.forward(_hidden,x_t, emb_t, mask=mask))
+          hidden = self.input_sublayer(hidden, lambda _hidden: self.MU.forward(_hidden, _hidden, _hidden, mask=mask))
+          hidden = self.output_sublayer(hidden, lambda _hidden: self.feed_forward(_hidden))
+        if self.epoch > 35:
+          hidden = self.input_sublayer(x+x_t, lambda _hidden: self.MU.forward(_hidden, _hidden, _hidden, mask=mask))
+          hidden = self.output_sublayer(hidden, lambda _hidden: self.feed_forward(_hidden))
         return hidden
 
 class Transformer_rep(nn.Module):
@@ -349,15 +354,17 @@ class Transformer_rep(nn.Module):
         super(Transformer_rep, self).__init__()
         self.hidden_size = args.hidden_size
         self.heads = 4
+        self.epoch = args.epochs
         self.dropout = args.dropout
         self.n_blocks = args.num_blocks
         self.transformer_blocks = nn.ModuleList(
-            [TransformerBlock(self.hidden_size, self.heads, self.dropout) for _ in range(self.n_blocks)])
+            [TransformerBlock(self.hidden_size, self.heads, self.dropout,self.epoch) for _ in range(self.n_blocks)])
 
     def forward(self, x, x_t, emb_t, mask):
         for transformer in self.transformer_blocks:
             hidden = transformer.forward(x, x_t, emb_t, mask)
         return hidden
+
 
 
 class Diffu_xstart(nn.Module):

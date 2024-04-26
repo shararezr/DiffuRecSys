@@ -33,7 +33,7 @@ default_params = {
     'hidden_act': 'gelu',
     'num_blocks': 4,
     'epochs': 40,
-    'decay_step': 100,
+    'decay_step': 28,
     'gamma': 0.1,
     'metric_ks': [5, 10, 20],
     'optimizer': 'Adam',

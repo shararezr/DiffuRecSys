@@ -25,7 +25,7 @@ default_params = {
     'random_seed': 1997,
     'max_len': 100,
     'device': 'cuda',
-    'num_gpu': 2,
+    'num_gpu': 1,
     'batch_size': 512,
     'hidden_size': 256,
     'dropout': 0.1,
@@ -33,7 +33,7 @@ default_params = {
     'hidden_act': 'gelu',
     'num_blocks': 4,
     'epochs': 60,
-    'decay_step': 27,
+    'decay_step': 20,#27
     'gamma': 0.1,
     'metric_ks': [5, 10, 20],
     'optimizer': 'Adam',

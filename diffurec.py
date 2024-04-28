@@ -7,15 +7,6 @@ import torch
 import torch.nn.functional as F
 
 
-import torch.nn as nn
-import torch as th
-#from step_sample import create_named_schedule_sampler
-import numpy as np
-import math
-import torch
-import torch.nn.functional as F
-
-
 def _extract_into_tensor(arr, timesteps, broadcast_shape):
     """
     Extract values from a 1-D numpy array for a batch of indices.
@@ -329,24 +320,19 @@ class MultiHeadedAttention(nn.Module):
 
 
 class TransformerBlock(nn.Module):
-    def __init__(self, hidden_size, attn_heads, dropout, epoch):
+    def __init__(self, hidden_size, attn_heads, dropout):
         super(TransformerBlock, self).__init__()
-        self.SA = CrossAttention(heads=attn_heads, hidden_size=hidden_size, dropout=dropout, emb_Tdim = hidden_size)
+        self.CA = CrossAttention(heads=attn_heads, hidden_size=hidden_size, dropout=dropout, emb_Tdim = hidden_size)
         self.MU = MultiHeadedAttention(heads=attn_heads, hidden_size=hidden_size, dropout=dropout)
-        self.epoch = epoch
         self.feed_forward = PositionwiseFeedForward(hidden_size=hidden_size, dropout=dropout)
         self.input_sublayer = SublayerConnection(hidden_size=hidden_size, dropout=dropout)
         self.output_sublayer = SublayerConnection(hidden_size=hidden_size, dropout=dropout)
         self.dropout = nn.Dropout(p=dropout)
 
     def forward(self, x, x_t, emb_t, mask):
-        if self.epoch <= 35:
-          hidden = self.input_sublayer(x, lambda _hidden: self.SA.forward(_hidden,x_t, emb_t, mask=mask))
-          hidden = self.input_sublayer(hidden, lambda _hidden: self.MU.forward(_hidden, _hidden, _hidden, mask=mask))
-          hidden = self.output_sublayer(hidden, lambda _hidden: self.feed_forward(_hidden))
-        if self.epoch > 35:
-          hidden = self.input_sublayer(x+x_t, lambda _hidden: self.MU.forward(_hidden, _hidden, _hidden, mask=mask))
-          hidden = self.output_sublayer(hidden, lambda _hidden: self.feed_forward(_hidden))
+        #hidden = self.input_sublayer(x, lambda _hidden: self.CA.forward(_hidden, x_t, emb_t, mask=mask))
+        hidden = self.input_sublayer(x , lambda _hidden: self.MU.forward(_hidden, _hidden, _hidden, mask=mask))
+        hidden = self.output_sublayer(hidden, lambda _hidden: self.feed_forward(_hidden))
         return hidden
 
 class Transformer_rep(nn.Module):
@@ -354,17 +340,15 @@ class Transformer_rep(nn.Module):
         super(Transformer_rep, self).__init__()
         self.hidden_size = args.hidden_size
         self.heads = 4
-        self.epoch = args.epochs
         self.dropout = args.dropout
         self.n_blocks = args.num_blocks
         self.transformer_blocks = nn.ModuleList(
-            [TransformerBlock(self.hidden_size, self.heads, self.dropout,self.epoch) for _ in range(self.n_blocks)])
+            [TransformerBlock(self.hidden_size, self.heads, self.dropout) for _ in range(self.n_blocks)])
 
     def forward(self, x, x_t, emb_t, mask):
         for transformer in self.transformer_blocks:
             hidden = transformer.forward(x, x_t, emb_t, mask)
         return hidden
-
 
 
 class Diffu_xstart(nn.Module):
@@ -377,6 +361,7 @@ class Diffu_xstart(nn.Module):
         time_embed_dim = self.hidden_size * 4
         self.time_embed = nn.Sequential(nn.Linear(self.hidden_size, time_embed_dim), SiLU(), nn.Linear(time_embed_dim, self.hidden_size))
         self.fuse_linear = nn.Linear(self.hidden_size*3, self.hidden_size)
+        self.CA = CrossAttention(4 ,self.hidden_size, args.dropout, self.hidden_size)
         self.att = Transformer_rep(args)
         # self.mlp_model = nn.Linear(self.hidden_size, self.hidden_size)
         # self.gru_model = nn.GRU(self.hidden_size, self.hidden_size, batch_first=True)
@@ -413,7 +398,8 @@ class Diffu_xstart(nn.Module):
         # lambda_uncertainty = self.lambda_uncertainty  ### fixed
 
         ####  Attention
-        rep_diffu = self.att(rep_item, lambda_uncertainty * x_t.unsqueeze(1), emb_t, mask_seq)
+        z = self.CA(rep_item, lambda_uncertainty * x_t.unsqueeze(1), emb_t, mask_seq)
+        rep_diffu = self.att(z, lambda_uncertainty * x_t.unsqueeze(1), emb_t, mask_seq)
         rep_diffu = self.norm_diffu_rep(self.dropout(rep_diffu))
         out = rep_diffu[:, -1, :]
 

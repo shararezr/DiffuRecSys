@@ -330,7 +330,7 @@ class TransformerBlock(nn.Module):
         self.dropout = nn.Dropout(p=dropout)
 
     def forward(self, x, x_t, emb_t, mask):
-        #hidden = self.input_sublayer(x, lambda _hidden: self.CA.forward(_hidden, x_t, emb_t, mask=mask))
+        hidden = self.input_sublayer(x, lambda _hidden: self.CA.forward(_hidden, x_t, emb_t, mask=mask))
         hidden = self.input_sublayer(x , lambda _hidden: self.MU.forward(_hidden, _hidden, _hidden, mask=mask))
         hidden = self.output_sublayer(hidden, lambda _hidden: self.feed_forward(_hidden))
         return hidden
@@ -398,8 +398,8 @@ class Diffu_xstart(nn.Module):
         # lambda_uncertainty = self.lambda_uncertainty  ### fixed
 
         ####  Attention
-        z = self.CA(rep_item, lambda_uncertainty * x_t.unsqueeze(1), emb_t, mask_seq)
-        rep_diffu = self.att(z, lambda_uncertainty * x_t.unsqueeze(1), emb_t, mask_seq)
+        #z = self.CA(rep_item, lambda_uncertainty * x_t.unsqueeze(1), emb_t, mask_seq)
+        rep_diffu = self.att(rep_item, lambda_uncertainty * x_t.unsqueeze(1), emb_t, mask_seq)
         rep_diffu = self.norm_diffu_rep(self.dropout(rep_diffu))
         out = rep_diffu[:, -1, :]
 

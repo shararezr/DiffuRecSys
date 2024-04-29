@@ -285,7 +285,7 @@ class CrossAttention(nn.Module):
 
         hidden = self.w_layer(hidden.transpose(1, 2).contiguous().view(batch_size, -1, self.num_heads * self.size_head))
         #hidden = self.proj_out(hidden,emb_t) + q
-        return self.proj_out(hidden, emb_t)
+        return hidden
 
 
 

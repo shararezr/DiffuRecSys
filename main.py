@@ -33,7 +33,7 @@ default_params = {
     'hidden_act': 'gelu',
     'num_blocks': 4,
     'epochs': 60,
-    'decay_step': 27,#27
+    'decay_step': 30,#27
     'gamma': 0.1,
     'metric_ks': [5, 10, 20],
     'optimizer': 'Adam',
@@ -47,7 +47,7 @@ default_params = {
     'noise_schedule': 'trunc_lin',
     'rescale_timesteps': True,
     'eval_interval': 3,
-    'patience': 5,
+    'patience':3,
     'description': 'Diffu_norm_score',
     'long_head': False,
     'diversity_measure': False,

@@ -23,7 +23,7 @@ default_params = {
     'dataset': 'ml-1m',
     'log_file': 'log/',
     'random_seed': 1997,
-    'max_len': 50,
+    'max_len': 100,
     'device': 'cuda',
     'num_gpu': 2,
     'batch_size': 512,
@@ -33,7 +33,7 @@ default_params = {
     'hidden_act': 'gelu',
     'num_blocks': 4,
     'epochs': 60,
-    'decay_step': 30,#27
+    'decay_step': 27,#27
     'gamma': 0.1,
     'metric_ks': [5, 10, 20],
     'optimizer': 'Adam',
@@ -378,7 +378,7 @@ def diversity_inference3(model_joint, args, data_loader, num_iterations=100, num
 def main(args):
     
     fix_random_seed_as(args.random_seed)
-    path_data = 'datasetB.pkl'
+    path_data = 'datasetM.pkl'
     with open(path_data, 'rb') as f:
         data_raw = pickle.load(f)
 

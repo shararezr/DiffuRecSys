@@ -32,8 +32,8 @@ default_params = {
     'emb_dropout': 0.3,
     'hidden_act': 'gelu',
     'num_blocks': 4,
-    'epochs': 40,
-    'decay_step': 27,#27
+    'epochs': 60,
+    'decay_step': 40,#27
     'gamma': 0.1,
     'metric_ks': [5, 10, 20],
     'optimizer': 'Adam',

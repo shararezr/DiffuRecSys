@@ -23,7 +23,7 @@ default_params = {
     'dataset': 'ml-1m',
     'log_file': 'log/',
     'random_seed': 1887,
-    'max_len': 70,
+    'max_len': 100,
     'device': 'cuda',
     'num_gpu': 2,
     'batch_size': 512,
@@ -32,8 +32,8 @@ default_params = {
     'emb_dropout': 0.3,
     'hidden_act': 'gelu',
     'num_blocks': 4,
-    'epochs': 60,
-    'decay_step': 60,#27
+    'epochs': 40,
+    'decay_step': 27,#27
     'gamma': 0.1,
     'metric_ks': [5, 10, 20],
     'optimizer': 'Adam',

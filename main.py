@@ -39,7 +39,7 @@ default_params = {
     'optimizer': 'Adam',
     'lr': 0.001,
     'loss_lambda': 0.001,
-    'weight_decay': 0.5,
+    'weight_decay': 0.1,
     'momentum': None,
     'schedule_sampler_name': 'lossaware',
     'diffusion_steps': 32,

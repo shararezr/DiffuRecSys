@@ -95,7 +95,14 @@ def model_train(tra_data_loader, val_data_loader, test_data_loader, model_joint,
     if is_parallel:
         model_joint = nn.DataParallel(model_joint)
     optimizer = optimizers(model_joint, args)
-    lr_scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=2)
+    #lr_scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=2)
+    # Define your lambda functions
+    lambda1 = lambda epoch: 0.95 ** epoch  # Example lambda function 1, adjust as needed
+    lambda2 = lambda epoch: 0.85 ** epoch  # Example lambda function 2, adjust as needed
+    
+    # Define the scheduler
+    lr_scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=[lambda1, lambda2])
+
     #lr_scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=args.decay_step, gamma=args.gamma)
     best_metrics_dict = {'Best_HR@5': 0, 'Best_NDCG@5': 0, 'Best_HR@10': 0, 'Best_NDCG@10': 0, 'Best_HR@20': 0, 'Best_NDCG@20': 0}
     best_epoch = {'Best_epoch_HR@5': 0, 'Best_epoch_NDCG@5': 0, 'Best_epoch_HR@10': 0, 'Best_epoch_NDCG@10': 0, 'Best_epoch_HR@20': 0, 'Best_epoch_NDCG@20': 0}

@@ -101,9 +101,9 @@ def model_train(tra_data_loader, val_data_loader, test_data_loader, model_joint,
     lambda2 = lambda epoch: 0.85 ** epoch  # Example lambda function 2, adjust as needed
     
     # Define the scheduler
-    lr_scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda2)
+    #lr_scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda2)
 
-    #lr_scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=args.decay_step, gamma=args.gamma)
+    lr_scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=args.decay_step, gamma=args.gamma)
     best_metrics_dict = {'Best_HR@5': 0, 'Best_NDCG@5': 0, 'Best_HR@10': 0, 'Best_NDCG@10': 0, 'Best_HR@20': 0, 'Best_NDCG@20': 0}
     best_epoch = {'Best_epoch_HR@5': 0, 'Best_epoch_NDCG@5': 0, 'Best_epoch_HR@10': 0, 'Best_epoch_NDCG@10': 0, 'Best_epoch_HR@20': 0, 'Best_epoch_NDCG@20': 0}
     bad_count = 0

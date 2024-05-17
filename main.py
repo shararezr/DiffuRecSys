@@ -22,7 +22,7 @@ import time
 default_params = {
     'dataset': 'ml-1m',
     'log_file': 'log/',
-    'random_seed': 1887,
+    'random_seed': 2007,
     'max_len': 100,
     'device': 'cuda',
     'num_gpu': 1,
@@ -33,13 +33,13 @@ default_params = {
     'hidden_act': 'gelu',
     'num_blocks': 4,
     'epochs': 40,
-    'decay_step': 27,#27
+    'decay_step': 30,#27
     'gamma': 0.1,
     'metric_ks': [5, 10, 20],
     'optimizer': 'Adam',
     'lr': 0.001,
     'loss_lambda': 0.001,
-    'weight_decay': 0,
+    'weight_decay': 0.0001,
     'momentum': None,
     'schedule_sampler_name': 'lossaware',
     'diffusion_steps': 32,

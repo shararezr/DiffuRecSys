@@ -97,8 +97,8 @@ def model_train(tra_data_loader, val_data_loader, test_data_loader, model_joint,
     optimizer = optimizers(model_joint, args)
     #lr_scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=2)
     # Define your lambda functions
-    lambda1 = lambda epoch: np.sin(epoch) / epoch   # Example lambda function 1, adjust as needed
-    lambda2 = lambda epoch: 0.85 ** epoch  # Example lambda function 2, adjust as needed
+    #lambda1 = lambda epoch: np.sin(epoch) / epoch   # Example lambda function 1, adjust as needed
+    #lambda2 = lambda epoch: 0.85 ** epoch  # Example lambda function 2, adjust as needed
     
     # Define the scheduler
     #lr_scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda2)

@@ -22,7 +22,7 @@ import time
 default_params = {
     'dataset': 'ml-1m',
     'log_file': 'log/',
-    'random_seed': 1887,
+    'random_seed': 1379,
     'max_len': 100,
     'device': 'cuda',
     'num_gpu': 1,

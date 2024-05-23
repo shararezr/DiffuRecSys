@@ -22,7 +22,7 @@ import time
 default_params = {
     'dataset': 'ml-1m',
     'log_file': 'log/',
-    'random_seed': 2022,
+    'random_seed': 2023,
     'max_len': 100,
     'device': 'cuda',
     'num_gpu': 1,
@@ -46,7 +46,7 @@ default_params = {
     'lambda_uncertainty': 0.001,
     'noise_schedule': 'trunc_lin',
     'rescale_timesteps': True,
-    'eval_interval': 3,
+    'eval_interval': 8,
     'patience':3,
     'description': 'Diffu_norm_score',
     'long_head': True,

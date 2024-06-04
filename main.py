@@ -50,7 +50,7 @@ default_params = {
     'patience':3,
     'description': 'Diffu_norm_score',
     'long_head': True,
-    'diversity_measure': False,
+    'diversity_measure':True,
     'epoch_time_avg': False
 }
 

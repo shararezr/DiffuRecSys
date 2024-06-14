@@ -46,7 +46,7 @@ default_params = {
     'lambda_uncertainty': 0.001,
     'noise_schedule': 'trunc_lin',
     'rescale_timesteps': True,
-    'eval_interval':8,
+    'eval_interval':3,
     'patience':3,
     'description': 'Diffu_norm_score',
     'long_head': True,
@@ -378,7 +378,7 @@ def diversity_inference3(model_joint, args, data_loader, num_iterations=100, num
 def main(args):
     
     fix_random_seed_as(args.random_seed)
-    path_data = 'datasetT.pkl'
+    path_data = 'datasetB.pkl'
     with open(path_data, 'rb') as f:
         data_raw = pickle.load(f)
 

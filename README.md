@@ -3,13 +3,13 @@
 Generative models, such as Variational Autoencoders (VAEs) and Generative Adversarial Networks (GANs), have shown great potential in sequential recommendation. However, these models face significant challenges, including posterior collapse and a limited ability to represent user preferences. In this work, we extend the architecture proposed by Li et al. (2023) by representing item embeddings as distributions. This novel approach allows for a more adaptive reflection of users' diverse interests and various item aspects.
 
 During the diffusion phase, the target item embedding is transformed into a Gaussian distribution by introducing noise, which facilitates the modeling of sequential item distributions and the incorporation of uncertainty. Our model, DiffuRecSys, enhances the original DiffuRec architecture by:
-```markdown
-* Incorporating Cross-Attention Mechanisms: We embed cross-attention within the Approximator to better capture the relationships between past user interactions and the target item, thus enriching the representation of user preferences.
 
-* Adding Offset Noise in the Diffusion Process: This addition increases model robustness and effectively manages variability in user interactions, leading to improved performance.
+1. **Incorporating Cross-Attention Mechanisms: We embed cross-attention within the Approximator to better capture the relationships between past user interactions and the target item, thus enriching the representation of user preferences.
 
-* Extensive Experimental Validation: We conduct thorough experiments across three public benchmark datasets, demonstrating that DiffuRecSys outperforms existing baselines and effectively captures diverse user preferences.
-```
+2. **Adding Offset Noise in the Diffusion Process: This addition increases model robustness and effectively manages variability in user interactions, leading to improved performance.
+
+3. **Extensive Experimental Validation: We conduct thorough experiments across three public benchmark datasets, demonstrating that DiffuRecSys outperforms existing baselines and effectively captures diverse user preferences.
+
 
 
 ## Key Features

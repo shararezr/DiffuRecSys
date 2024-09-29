@@ -4,11 +4,11 @@ Generative models, such as Variational Autoencoders (VAEs) and Generative Advers
 
 During the diffusion phase, the target item embedding is transformed into a Gaussian distribution by introducing noise, which facilitates the modeling of sequential item distributions and the incorporation of uncertainty. Our model, DiffuRecSys, enhances the original DiffuRec architecture by:
 
-1. **Incorporating Cross-Attention Mechanisms: We embed cross-attention within the Approximator to better capture the relationships between past user interactions and the target item, thus enriching the representation of user preferences.
+1. Incorporating Cross-Attention Mechanisms: We embed cross-attention within the Approximator to better capture the relationships between past user interactions and the target item, thus enriching the representation of user preferences.
 
-2. **Adding Offset Noise in the Diffusion Process: This addition increases model robustness and effectively manages variability in user interactions, leading to improved performance.
+2. Adding Offset Noise in the Diffusion Process: This addition increases model robustness and effectively manages variability in user interactions, leading to improved performance.
 
-3. **Extensive Experimental Validation: We conduct thorough experiments across three public benchmark datasets, demonstrating that DiffuRecSys outperforms existing baselines and effectively captures diverse user preferences.
+3. Extensive Experimental Validation: We conduct thorough experiments across three public benchmark datasets, demonstrating that DiffuRecSys outperforms existing baselines and effectively captures diverse user preferences.
 
 
 
@@ -24,15 +24,15 @@ Comprehensive Experimental Framework: A well-structured approach to experimentat
 ## Model Architecture
 The DiffuRec framework employs a two-phase process:
 
-Diffusion Phase: This phase involves converting item embeddings into noisy representations via Gaussian distributions, effectively capturing latent aspects of the items.
+1. Diffusion Phase: This phase involves converting item embeddings into noisy representations via Gaussian distributions, effectively capturing latent aspects of the items.
 
-Reverse Phase: The model iteratively reconstructs the target item representation from noisy inputs, culminating in a final prediction of the next item the user is likely to interact with.
+2. Reverse Phase: The model iteratively reconstructs the target item representation from noisy inputs, culminating in a final prediction of the next item the user is likely to interact with.
 
 The architecture leverages a Transformer-based Approximator to process historical user interactions and produce refined item embeddings. Key components include:
 
-Noising and Sampling: Implementing noise sampling techniques to enhance the model's adaptability to different user behaviors.
+* Noising and Sampling: Implementing noise sampling techniques to enhance the model's adaptability to different user behaviors.
 
-Rounding Function: A mechanism to convert continuous item representations into discrete indices for final predictions.
+* Rounding Function: A mechanism to convert continuous item representations into discrete indices for final predictions.
 
 ## Installation
 To use DiffuRecSys, clone this repository and install the necessary dependencies:

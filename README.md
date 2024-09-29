@@ -24,9 +24,9 @@ Comprehensive Experimental Framework: A well-structured approach to experimentat
 ## Model Architecture
 The DiffuRec framework employs a two-phase process:
 
-1. Diffusion Phase: This phase involves converting item embeddings into noisy representations via Gaussian distributions, effectively capturing latent aspects of the items.
+* Diffusion Phase: This phase involves converting item embeddings into noisy representations via Gaussian distributions, effectively capturing latent aspects of the items.
 
-2. Reverse Phase: The model iteratively reconstructs the target item representation from noisy inputs, culminating in a final prediction of the next item the user is likely to interact with.
+* Reverse Phase: The model iteratively reconstructs the target item representation from noisy inputs, culminating in a final prediction of the next item the user is likely to interact with.
 
 The architecture leverages a Transformer-based Approximator to process historical user interactions and produce refined item embeddings. Key components include:
 

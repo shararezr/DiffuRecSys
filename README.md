@@ -36,7 +36,7 @@ Rounding Function: A mechanism to convert continuous item representations into d
 
 ## Installation
 To use DiffuRecSys, clone this repository and install the necessary dependencies:
-
+```bash
 git clone https://github.com/yourusername/DiffuRecSys.git
 cd DiffuRecSys
 pip install -r requirements.txt

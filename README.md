@@ -56,6 +56,7 @@ We have utilized three public benchmark datasets for our experiments:
 
 ## Results
 Comprehensive results from our experiments demonstrate the improvements of DiffuRecSys over baseline models. Detailed evaluations can be found in the paper and accompanying results files.
+![Animated Plots](./plots_animation.gif)
 
 ## Conclusion
 DiffuRecSys represents a significant advancement in the field of sequential recommendation systems, providing robust mechanisms for capturing user preferences and improving prediction accuracy through innovative architectural enhancements.

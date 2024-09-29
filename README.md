@@ -60,9 +60,6 @@ Comprehensive results from our experiments demonstrate the improvements of Diffu
 ## Conclusion
 DiffuRecSys represents a significant advancement in the field of sequential recommendation systems, providing robust mechanisms for capturing user preferences and improving prediction accuracy through innovative architectural enhancements.
 
-## License
-This project is licensed under the MIT License - see the LICENSE file for details.
-
 
 
 

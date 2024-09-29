@@ -56,7 +56,7 @@ We have utilized three public benchmark datasets for our experiments:
 
 ## Results
 Comprehensive results from our experiments demonstrate the improvements of DiffuRecSys over baseline models. Detailed evaluations can be found in the paper and accompanying results files.
-<img src="./animated_plots.gif" alt="Animated Plots" width="500"/>
+<img src="./plots_animation.gif" alt="Animated Plots" width="500"/>
 
 
 ## Conclusion

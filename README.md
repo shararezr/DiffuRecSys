@@ -34,6 +34,7 @@ The architecture leverages a Transformer-based Approximator to process historica
 
 * Rounding Function: A mechanism to convert continuous item representations into discrete indices for final predictions.
 
+<img src="Architecture.png"  width="500"/>
 ## Installation
 
 Prerequisites:

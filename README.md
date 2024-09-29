@@ -40,7 +40,7 @@ To use DiffuRecSys, clone this repository and install the necessary dependencies
 git clone https://github.com/yourusername/DiffuRecSys.git
 cd DiffuRecSys
 pip install -r requirements.txt
-
+````
 ## Usage
 Prepare your dataset in the format expected by the model.
 Run the training script:

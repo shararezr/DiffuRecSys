@@ -35,26 +35,26 @@ The architecture leverages a Transformer-based Approximator to process historica
 * Rounding Function: A mechanism to convert continuous item representations into discrete indices for final predictions.
 
 ## Installation
+
+Prerequisites:
+* Python 3.8+
+* PyTorch
+* RecBole (for dataset management)
+  
 To use DiffuRecSys, clone this repository and install the necessary dependencies:
 ```bash
 git clone https://github.com/yourusername/DiffuRecSys.git
 cd DiffuRecSys
 pip install -r requirements.txt
 ````
-## Usage
-Prepare your dataset in the format expected by the model.
-Run the training script:
-
-python train.py --dataset your_dataset_name
-
-Evaluate the model's performance using the provided evaluation scripts.
 
 ## Datasets
 We have utilized three public benchmark datasets for our experiments:
 
-Amazon (Beauty and Toys subcategories): User reviews of products.
-MovieLens 1M: A widely recognized dataset comprising approximately 1 million user ratings on movies.
-Results
+* Amazon (Beauty and Toys subcategories): User reviews of products.
+* MovieLens 1M: A widely recognized dataset comprising approximately 1 million user ratings on movies.
+
+## Results
 Comprehensive results from our experiments demonstrate the improvements of DiffuRecSys over baseline models. Detailed evaluations can be found in the paper and accompanying results files.
 
 ## Conclusion

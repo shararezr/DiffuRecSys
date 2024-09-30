@@ -1,3 +1,5 @@
+![Python](https://img.shields.io/badge/language-python-blue.svg)
+
 # DiffuRecSys: A Novel Diffusion-Based Framework for Sequential Recommendations
 ## Overview
 Generative models, such as Variational Autoencoders (VAEs) and Generative Adversarial Networks (GANs), have shown great potential in sequential recommendation. However, these models face significant challenges, including posterior collapse and a limited ability to represent user preferences. We extend the architecture proposed by Li et al. (2023) which represents item embeddings as distributions. This work introduces novel enhancements to the DiffuRec architecture, significantly improving user interaction predictions by incorporating offset noise and cross-attention mechanisms. This novel approach allows for a more adaptive reflection of users' diverse interests and various item aspects.
